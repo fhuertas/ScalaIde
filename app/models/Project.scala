@@ -10,10 +10,10 @@ import play.api.libs.json._
 import play.api.libs.concurrent._
 import play.api.Play.current
 import akka.actor._
-import akka.util.duration._
+import scala.concurrent.duration._
 import akka.util.Timeout
 import akka.pattern.ask
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import java.io.{OutputStreamWriter, FileOutputStream, File}
 
 class CompileRobot (projectPath:String, project:ActorRef) {
@@ -47,8 +47,9 @@ object Project {
    def leave(id:String) {
      
     // Stop compileRobot
-    users.getOrElse(id, null)._2.stop
-    
+     for (x <- users.get(id)) {
+       x._2.stop
+     }
     users = users - id
   }
   
@@ -57,7 +58,10 @@ object Project {
   }
   
   def load(id: String, fileName: String) = {
-    users.getOrElse(id, null)._1 ! Load(fileName)
+    for (x <- users.get(id)) {
+      x._1 ! Load(fileName)
+    }
+    //users.getOrElse(id, null)._1 ! Load(fileName)
   }
   
   def save(id: String, fileName: String, content: String) = {
@@ -118,7 +122,7 @@ class Project(id: String, projectPath: String) extends Actor {
   val compiler = {
     
     def libDirs = {
-        val playLibs = Play.current.configuration.getString("framework.directory").get + "/framework/sbt"
+        val playLibs = Play.current.configuration.getString("framework.directory").get
         val sbtProj = new SbtProject(projectPath)
         if (sbtProj.isExistent)
          (sbtProj.update).waitFor
@@ -347,7 +351,7 @@ class SbtProject(val path: String) {
   def buildSbtContent: String = {
     "name := \"ScalaIde Default Project\"\n\n" +
     "version := \"0.1\"\n\n" +
-    "scalaVersion := \"2.9.1\"\n\n" +
+    "scalaVersion := \"2.10.2\"\n\n" +
     "libraryDependencies += \"org.specs2\" %%" +
       "\"specs2\" % \"1.11\" % \"test\"\n\n" +
     "retrieveManaged := true"

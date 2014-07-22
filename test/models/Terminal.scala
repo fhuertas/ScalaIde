@@ -8,7 +8,7 @@ import models.{Terminal, ExpectScript}
 
 
 object WebsocketMock extends Mockito {
-  val m = mock[play.api.libs.iteratee.PushEnumerator[JsValue]].smart
+  val m = mock[play.api.libs.iteratee.Enumerator[JsValue]].smart
 }
 
 class ExpectScriptSpec extends Specification {
@@ -56,7 +56,7 @@ class TerminalSpec extends Specification {
     skipAll
     
   val terminal = new Terminal
-  terminal.setWebsocket(WebsocketMock.m)
+//  terminal.setWebsocket(WebsocketMock.m)
 
   "Before the terminal is started" should {
     "no stdin be set" in {
